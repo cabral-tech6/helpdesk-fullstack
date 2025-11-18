@@ -1,0 +1,55 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  name      String
+  email     String    @unique
+  password  String
+  role      String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  // Tickets que o usuário abriu
+  tickets   Ticket[]  @relation("UserTickets")
+
+  // Tickets que o usuário está responsável como técnico
+  assigned  Ticket[]  @relation("AssignedTickets")
+}
+
+model Ticket {
+  id            Int       @id @default(autoincrement())
+  title         String
+  description   String
+  status        Status    @default(OPEN)
+  priority      Priority  @default(MEDIUM)
+  category      String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Usuário que abriu o chamado
+  user          User      @relation("UserTickets", fields: [userId], references: [id])
+  userId        Int
+
+  // Técnico responsável (opcional)
+  technician    User?     @relation("AssignedTickets", fields: [technicianId], references: [id])
+  technicianId  Int?
+}
+
+enum Status {
+  OPEN
+  IN_PROGRESS
+  CLOSED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+}
